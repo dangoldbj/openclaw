@@ -6,10 +6,10 @@ import {
   startWhatsAppLogin,
   waitWhatsAppLogin,
 } from "./controllers/channels.ts";
-import type { SimplexInviteMode } from "./controllers/channels.types.ts";
 import { loadConfig, saveConfig } from "./controllers/config.ts";
 import type { NostrProfile } from "./types.ts";
 import { createNostrProfileFormState } from "./views/channels.nostr-profile-form.ts";
+import type { SimplexInviteMode } from "./controllers/channels.types.ts";
 
 export async function handleWhatsAppStart(host: OpenClawApp, force: boolean) {
   await startWhatsAppLogin(host, force);
