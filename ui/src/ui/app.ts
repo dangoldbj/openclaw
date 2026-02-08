@@ -10,8 +10,8 @@ import {
   handleNostrProfileImport as handleNostrProfileImportInternal,
   handleNostrProfileSave as handleNostrProfileSaveInternal,
   handleNostrProfileToggleAdvanced as handleNostrProfileToggleAdvancedInternal,
+  handleSimplexAddressShowOrCreate as handleSimplexAddressShowOrCreateInternal,
   handleSimplexInviteCreate as handleSimplexInviteCreateInternal,
-  handleSimplexInviteList as handleSimplexInviteListInternal,
   handleSimplexInviteRevoke as handleSimplexInviteRevokeInternal,
   type SimplexControlAccountState,
   type SimplexInviteMode,
@@ -515,12 +515,12 @@ export class OpenClawApp extends LitElement {
     await handleSimplexInviteCreateInternal(this, accountId, mode);
   }
 
-  async handleSimplexInviteList(accountId: string) {
-    await handleSimplexInviteListInternal(this, accountId);
-  }
-
   async handleSimplexInviteRevoke(accountId: string) {
     await handleSimplexInviteRevokeInternal(this, accountId);
+  }
+
+  async handleSimplexAddressShowOrCreate(accountId: string) {
+    await handleSimplexAddressShowOrCreateInternal(this, accountId);
   }
 
   async handleExecApprovalDecision(decision: "allow-once" | "allow-always" | "deny") {
