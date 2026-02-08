@@ -13,7 +13,6 @@ import {
   handleSimplexAddressShowOrCreate as handleSimplexAddressShowOrCreateInternal,
   handleSimplexInviteCreate as handleSimplexInviteCreateInternal,
   handleSimplexInviteRevoke as handleSimplexInviteRevokeInternal,
-  type SimplexControlAccountState,
   type SimplexInviteMode,
   handleWhatsAppLogout as handleWhatsAppLogoutInternal,
   handleWhatsAppStart as handleWhatsAppStartInternal,
@@ -86,6 +85,7 @@ import type {
 } from "./types.ts";
 import { type ChatAttachment, type ChatQueueItem, type CronFormState } from "./ui-types.ts";
 import type { NostrProfileFormState } from "./views/channels.nostr-profile-form.ts";
+import type { SimplexControlState } from "./views/channels.simplex-control-state.ts";
 
 declare global {
   interface Window {
@@ -206,7 +206,7 @@ export class OpenClawApp extends LitElement {
   @state() whatsappBusy = false;
   @state() nostrProfileFormState: NostrProfileFormState | null = null;
   @state() nostrProfileAccountId: string | null = null;
-  @state() simplexControlByAccount: Record<string, SimplexControlAccountState> = {};
+  @state() simplexControlByAccount: Record<string, SimplexControlState> = {};
 
   @state() presenceLoading = false;
   @state() presenceEntries: PresenceEntry[] = [];
