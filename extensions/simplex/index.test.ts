@@ -5,6 +5,23 @@ type MockResponse = { [key: string]: unknown };
 let mockSendResponses: MockResponse[] = [{ resp: { type: "ok" } }];
 let sentCommands: string[] = [];
 
+function setMockResponse(next: MockResponse | MockResponse[]): void {
+  mockSendResponses = Array.isArray(next) ? [...next] : [next];
+}
+
+function getLastCommand(): string | null {
+  return sentCommands[sentCommands.length - 1] ?? null;
+}
+
+function getCommands(): string[] {
+  return [...sentCommands];
+}
+
+function resetMockState(): void {
+  sentCommands = [];
+  mockSendResponses = [{ resp: { type: "ok" } }];
+}
+
 const qrMocks = vi.hoisted(() => ({
   renderQrPngBase64: vi.fn(async () => "mock-base64"),
 }));
@@ -19,15 +36,6 @@ vi.mock("./src/simplex-ws-client.js", () => ({
     }
     async close() {}
   },
-  __setMockResponse: (next: MockResponse | MockResponse[]) => {
-    mockSendResponses = Array.isArray(next) ? [...next] : [next];
-  },
-  __getLastCommand: () => sentCommands[sentCommands.length - 1] ?? null,
-  __getCommands: () => [...sentCommands],
-  __resetMock: () => {
-    sentCommands = [];
-    mockSendResponses = [{ resp: { type: "ok" } }];
-  },
 }));
 
 vi.mock("../../src/web/qr-image.js", () => ({
@@ -36,12 +44,6 @@ vi.mock("../../src/web/qr-image.js", () => ({
 
 import type { PluginRuntime } from "openclaw/plugin-sdk";
 import plugin from "./index.js";
-import {
-  __getCommands,
-  __getLastCommand,
-  __resetMock,
-  __setMockResponse,
-} from "./src/simplex-ws-client.js";
 
 const noopLogger = {
   info: vi.fn(),
@@ -77,8 +79,14 @@ function setupHandlers(config: Record<string, unknown> = {}): Map<string, Handle
     registerChannel: () => {},
     registerGatewayMethod: (method, handler) => methods.set(method, handler as Handler),
     registerTool: () => {},
+    registerHook: () => {},
+    registerHttpHandler: () => {},
+    registerHttpRoute: () => {},
     registerCli: () => {},
     registerService: () => {},
+    registerProvider: () => {},
+    registerCommand: () => {},
+    on: () => {},
     resolvePath: (value: string) => value,
   });
   return methods;
@@ -95,7 +103,7 @@ function setupHandler(method: string, config: Record<string, unknown> = {}): Han
 
 describe("simplex invite gateway", () => {
   afterEach(() => {
-    __resetMock();
+    resetMockState();
     vi.clearAllMocks();
   });
 
@@ -116,7 +124,7 @@ describe("simplex invite gateway", () => {
   });
 
   it("returns a simplex invite link + qr data", async () => {
-    __setMockResponse({
+    setMockResponse({
       resp: {
         type: "ok",
         message: "Use simplex://invite123 or https://example.com",
@@ -144,12 +152,12 @@ describe("simplex invite gateway", () => {
       qrDataUrl: "data:image/png;base64,mock-base64",
       mode: "connect",
     });
-    expect(__getLastCommand()).toBe("/c");
+    expect(getLastCommand()).toBe("/c");
     expect(qrMocks.renderQrPngBase64).toHaveBeenCalledWith("simplex://invite123");
   });
 
   it("uses address mode to build invite command", async () => {
-    __setMockResponse({
+    setMockResponse({
       resp: {
         type: "ok",
         output: "simplex://address456",
@@ -176,11 +184,11 @@ describe("simplex invite gateway", () => {
       link: "simplex://address456",
       mode: "address",
     });
-    expect(__getLastCommand()).toBe("/ad");
+    expect(getLastCommand()).toBe("/ad");
   });
 
   it("lists address links and pending hints", async () => {
-    __setMockResponse([
+    setMockResponse([
       {
         resp: {
           type: "ok",
@@ -218,7 +226,7 @@ describe("simplex invite gateway", () => {
       addressQrDataUrl: "data:image/png;base64,mock-base64",
     });
     expect((payload as { pendingHints?: string[] }).pendingHints?.length).toBeGreaterThan(0);
-    expect(__getCommands()).toEqual(["/show_address", "/contacts"]);
+    expect(getCommands()).toEqual(["/show_address", "/contacts"]);
     expect(qrMocks.renderQrPngBase64).toHaveBeenCalledWith("simplex://address789");
   });
 
@@ -250,6 +258,6 @@ describe("simplex invite gateway", () => {
     const [ok, payload] = respond.mock.calls[0];
     expect(ok).toBe(true);
     expect(payload).toMatchObject({ accountId: "ops" });
-    expect(__getLastCommand()).toBe("/delete_address");
+    expect(getLastCommand()).toBe("/delete_address");
   });
 });
