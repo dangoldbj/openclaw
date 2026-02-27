@@ -1,5 +1,5 @@
 import type { ChannelAccountSnapshot, OpenClawConfig, RuntimeEnv } from "openclaw/plugin-sdk";
-import { resolveMentionGatingWithBypass } from "openclaw/plugin-sdk";
+import { createScopedPairingAccess, resolveMentionGatingWithBypass } from "openclaw/plugin-sdk";
 import { getSimplexRuntime } from "./runtime.js";
 import {
   buildCancelFileCommand,
@@ -420,6 +420,11 @@ async function handleSimplexEvent(params: {
     });
 
     const core = getSimplexRuntime();
+    const pairing = createScopedPairingAccess({
+      core,
+      channel: "simplex",
+      accountId: account.accountId,
+    });
 
     const route = core.channel.routing.resolveAgentRoute({
       cfg,
@@ -444,7 +449,7 @@ async function handleSimplexEvent(params: {
       (!isGroup && (dmPolicy !== "open" || shouldComputeAuth)) ||
       (isGroup && (groupPolicy !== "open" || shouldComputeAuth));
     const storeAllowFrom = shouldLoadAllowFromStore
-      ? await core.channel.pairing.readAllowFromStore("simplex").catch(() => [])
+      ? await pairing.readAllowFromStore().catch(() => [])
       : [];
     const effectiveDmAllowFrom = [...configAllowFrom, ...storeAllowFrom];
     const baseGroupAllowFrom =
@@ -511,8 +516,7 @@ async function handleSimplexEvent(params: {
         if (!allowed) {
           if (dmPolicy === "pairing") {
             const senderId = normalizedSenderId ?? String(context.chatId);
-            const { code, created } = await core.channel.pairing.upsertPairingRequest({
-              channel: "simplex",
+            const { code, created } = await pairing.upsertPairingRequest({
               id: senderId,
               meta: { name: context.senderName },
             });
