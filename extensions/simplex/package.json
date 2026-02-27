@@ -7,12 +7,6 @@
     "ws": "^8.19.0",
     "zod": "^4.3.6"
   },
-  "devDependencies": {
-    "openclaw": "workspace:*"
-  },
-  "peerDependencies": {
-    "openclaw": ">=2026.2.1"
-  },
   "openclaw": {
     "extensions": [
       "./index.ts"
